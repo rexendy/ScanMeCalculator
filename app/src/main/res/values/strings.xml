@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Scan Me Calculator</string>
+    <string name="app_name_red_file">Red File Calculator</string>
+    <string name="app_name_red_camera">Red Camera Calculator</string>
+    <string name="app_name_green_file">Green File Calculator</string>
+    <string name="app_name_green_camera">Green Camera Calculator</string>
+
+    <string name="add_input">Add Input</string>
+    <string name="input">Input: </string>
+    <string name="result">Result: </string>
+</resources>
