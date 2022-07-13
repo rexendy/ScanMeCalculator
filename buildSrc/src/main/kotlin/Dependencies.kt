@@ -71,9 +71,15 @@ object TestLibraries {
         const val junit4 = "4.13.2"
         const val espressoCore = "3.4.0"
         const val testExtensions = "1.1.3"
+        const val mockk = "1.12.4"
+        const val ktxCoroutineText = "1.6.0"
+        const val archCore = "2.1.0"
     }
 
     const val junit4          = "junit:junit:${Versions.junit4}"
     const val espressoCore    = "androidx.test.espresso:espresso-core:${Versions.espressoCore}"
     const val testExtJunit    = "androidx.test.ext:junit:${Versions.testExtensions}"
+    const val mockk           = "io.mockk:mockk:${Versions.mockk}"
+    const val ktxCoroutineTxt = "org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.ktxCoroutineText}"
+    const val archCore        = "androidx.arch.core:core-testing:${Versions.archCore}"
 }

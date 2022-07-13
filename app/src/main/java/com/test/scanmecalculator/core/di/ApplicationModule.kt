@@ -1,6 +1,7 @@
 package com.test.scanmecalculator.core.di
 
 import android.content.Context
+import com.test.scanmecalculator.feature.scan.ScanText
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -14,4 +15,5 @@ class ApplicationModule {
     @Provides
     @Singleton
     fun provideApplicationContext(@ApplicationContext appContext: Context): Context = appContext
+
 }

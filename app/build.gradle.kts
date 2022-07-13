@@ -26,6 +26,13 @@ android {
     buildFeatures {
         viewBinding = true
     }
+
+    sourceSets {
+        getByName("greenFile") { java.srcDir("src/greenFile/java") }
+        getByName("greenCamera") { java.srcDir("src/greenCamera/java") }
+        getByName("redCamera") { java.srcDir("src/redCamera/java") }
+        getByName("redFile") { java.srcDir("src/redFile/java") }
+    }
 }
 
 dependencies {
@@ -48,6 +55,9 @@ dependencies {
 
     // Unit/Android tests dependencies
     testImplementation(TestLibraries.junit4)
+    testImplementation(TestLibraries.mockk)
+    testImplementation(TestLibraries.ktxCoroutineTxt)
+    testImplementation(TestLibraries.archCore)
 
     // Acceptance tests dependencies
     androidTestImplementation(TestLibraries.espressoCore)

@@ -15,7 +15,7 @@
         android:theme="@style/Theme.ScanMeCalculator"
         android:name=".AndroidApplication">
         <activity
-            android:name=".feature.scan.MainActivity"
+            android:name="scanmecalculator.feature.scan.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -1,11 +1,11 @@
 package com.test.scanmecalculator.feature.scan
 
+import android.content.Context
 import android.graphics.Bitmap
+import android.net.Uri
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.text.TextRecognition
-import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import javax.inject.Inject
@@ -16,30 +16,54 @@ import javax.inject.Inject
  * where the data is observed
  */
 @HiltViewModel
-class ScanCalculatorViewModel @Inject constructor(): ViewModel() {
+class ScanCalculatorViewModel @Inject constructor(
+    private val scanText: ScanText
+): ViewModel() {
     val result = MutableLiveData<String>()
     val expression = MutableLiveData<String>()
     val errorMessage = MutableLiveData<String>()
-    val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-    var bitmap: Bitmap? = null
-    private val regExPattern = "^(\\d+)([\\+\\-\\*\\/]\\d+)"
 
-    var scrope = CoroutineScope(Job() + Dispatchers.Main)
+    private var bitmap: Bitmap? = null
+    private var uri: Uri? = null
+    private var  context: Context? = null
+    private val operands = listOf("+","-","*","/")
 
     fun readTextFromImage() {
-        scrope.launch {
+        viewModelScope.launch {
             resetResults()
-            bitmap?.let { scanImage(it) }
+            bitmap?.let {
+                scanText.setInputImageFromBitmap(it)
+            }
+
+            uri?.let {
+                scanText.setInputImgeFromUri(it)
+            }
+
+            val getTxt =  scanText.scannedImage()
+            if (getTxt.isNotEmpty()) {
+                if (getTxt.lowercase().contains("failed")) {
+                    errorMessage.value = getTxt
+                } else {
+                    scanImage(getTxt)
+                }
+            }
         }
     }
 
-    /**
-     * Sets the bitmap
-     * @param Bitmap value
-     */
     @JvmName("setBitmap1")
     fun setBitmap(value: Bitmap) {
         bitmap = value
+    }
+
+    @JvmName("setUri1")
+    fun setUri(value: Uri) {
+        uri = value
+    }
+
+    @JvmName("setContext1")
+    fun setContext(value: Context) {
+        context = value
+        scanText.setContext(value)
     }
 
     /**
@@ -54,35 +78,19 @@ class ScanCalculatorViewModel @Inject constructor(): ViewModel() {
      * Scan the bitmap and gets the
      * expression and do the mathematical expression
      *
-     * @param Bitmap bitmap
+     * @param String data
      */
-    private fun scanImage(bitmap: Bitmap) {
-        val image = InputImage.fromBitmap(bitmap, 0)
-        val operands = listOf("+","-","*","/")
-        recognizer.process(image)
-            .addOnSuccessListener { visionText ->
-                val regex = Regex(regExPattern)
-                var matchResult = regex.find(visionText.text)
-                val getMatchResult = matchResult?.value
-
-                if (getMatchResult != null) {
-                    if (getMatchResult.isNotEmpty()) {
-                        operands.forEach {
-                            val splitNum = split(it, getMatchResult)
-                            if (splitNum.size == 2) {
-                                result.value = doOperation(it, splitNum).toString()
-                                return@forEach
-                            }
-                        }
-                        expression.value = getMatchResult
-                    }
-                } else {
-                    errorMessage.value = "Failed to get expression"
+    private fun scanImage(data: String) {
+        if (data.isNotEmpty()) {
+            operands.forEach {
+                val splitNum = split(it, data)
+                if (splitNum.size == 2) {
+                    result.value = String.format("%.2f", doOperation(it, splitNum))
+                    return@forEach
                 }
             }
-            .addOnFailureListener { e ->
-                errorMessage.value = "Failed to get expression"
-            }
+            expression.value = data
+        }
     }
 
     /**
@@ -103,75 +111,39 @@ class ScanCalculatorViewModel @Inject constructor(): ViewModel() {
      * @param List<String> data holds the numbers to calculate
      * @return Int
      */
-    private fun doOperation(operand: String, data: List<String>): Int {
-        var result = 0
+    private fun doOperation(operand: String, data: List<String>): Float {
+        var result: Float = 0.2F
         when(operand) {
             "+" -> {
-                result = sum(data.first().toInt(), data.last().toInt())
+                result = sum(data.first().toFloat(), data.last().toFloat())
             }
             "-" -> {
-                result = difference(data.first().toInt(), data.last().toInt())
+                result = difference(data.first().toFloat(), data.last().toFloat())
             }
             "*" -> {
-                result = product( data.first().toInt(), data.last().toInt())
+                result = product( data.first().toFloat(), data.last().toFloat())
             }
             "/" -> {
-                result = quotient(data.first().toInt(), data.last().toInt())
+                result = quotient(data.first().toFloat(), data.last().toFloat())
             }
         }
 
         return  result
     }
 
-    /**
-     * Add the numbers
-     *
-     * @param num1
-     * @param num2
-     * @return Int
-     */
-    private fun sum(num1: Int, num2: Int): Int {
+    private fun sum(num1: Float, num2: Float): Float {
         return num1 + num2
     }
 
-    /**
-     * Subtract the numbers
-     *
-     * @param num1
-     * @param num2
-     * @return Int
-     */
-    private fun difference(num1: Int, num2: Int): Int {
+    private fun difference(num1: Float, num2: Float): Float {
         return num1 - num2
     }
 
-    /**
-     * Multiply the numbers
-     *
-     * @param num1
-     * @param num2
-     * @return Int
-     */
-    private fun product(num1: Int, num2: Int): Int {
+    private fun product(num1: Float, num2: Float): Float {
         return num1 * num2
     }
 
-    /**
-     * Divide the numbers
-     *
-     * @param num1
-     * @param num2
-     * @return Int
-     */
-    private fun quotient(num1: Int, num2: Int): Int {
+    private fun quotient(num1: Float, num2: Float): Float {
         return num1 / num2
-    }
-
-    /**
-     * When onCleared the scope is cancelled
-     */
-    override fun onCleared() {
-        super.onCleared()
-        scrope?.cancel()
     }
 }
